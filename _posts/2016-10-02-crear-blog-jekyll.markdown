@@ -36,7 +36,7 @@ Con esto no solo creamos el directorio con todos los archivos listos para el blo
 
 ### Problemas de rutas absolutas y relativas, dependiendo de la url base ###
 
-Gracias a seguir las prácticas que menciona este articulo: http://downtothewire.io/2015/08/15/configuring-jekyll-for-user-and-project-github-pages/ logré arreglar varios de los problemas que comento abajo.  
+Gracias a seguir las prácticas que menciona este articulo: <http://downtothewire.io/2015/08/15/configuring-jekyll-for-user-and-project-github-pages/> logré arreglar varios de los problemas que comento abajo.  
 
 ### Modificar layouts por defecto ###
 Para hacer lo que el articulo mencionado arriba sugiere, y para corregir otros problemas que comento mas abajo, necesitaba modificar archivos de `layouts` e `includes` que vienen con el theme `minima` por defecto.  

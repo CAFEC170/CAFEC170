@@ -34,16 +34,30 @@ Con esto no solo creamos el directorio con todos los archivos listos para el blo
 
 # Problemas y Soluciones #
 
-### No carga los css ###
-Cuando hice los pasos descriptos anteriormente, pude visualizar en `localhost:4000` en el navegador el blog creado por defecto, pero por alguna extraña razón no cargaba los estilos css.  
+### Problemas de rutas absolutas y relativas, dependiendo de la url base ###
 
-Inspeccionando el archivo `index.html` que jekyll genera, vi que los estilos estaban referenciandos hacia la url:`cafec170.github.io/css/main.css` y en el consola de Firefox me indicaba que no se encontró el recurso. Esto se debía a que en el archivo de configuración `_config.yml` yo setié la variable `url: "cafec170.github.io"`, lo cual está correcto! y es necesario para que sea publicado correctamente online en github pages.  
+Gracias a seguir las prácticas que menciona este articulo: http://downtothewire.io/2015/08/15/configuring-jekyll-for-user-and-project-github-pages/ logré arreglar varios de los problemas que comento abajo.  
+
+### Modificar layouts por defecto ###
+Para hacer lo que el articulo mencionado arriba sugiere, y para corregir otros problemas que comento mas abajo, necesitaba modificar archivos de `layouts` e `includes` que vienen con el theme `minima` por defecto.  
+
+Como en la estructura que viene se usan el layout `default` el cual hace uso de includes como `header`, mi idea para cambiar las rutas era copiar el contenido del los layouts e includes que necesitaba modificar, a un nuevo lugar en mi directorio y ahí realizarle las modificaciones necesarias.  
+
+El problema es que yo no tenía idea en donde estaban guardados estos archivo, entonces lo primero que se me ocurrió fue ir al repositorio de Jekyll y buscar `_layouts` para ver si en algun lugar se hacía referencia a esta carpeta, no lo encontré exactamente ahí, pero si las [direcciones para llegar a el](https://github.com/jekyll/jekyll/blob/152fa877f6775dc6502e8020e4384cd24f0a0c8c/site/_docs/themes.md#overriding-theme-defaults). Además leyendo este link entendí el comportamiento de Jekyll: Si se usa un layout, primero lo busca en el directorio local y sino lo encuentra, hace uso de los por defecto, lo cual me viene perfecto para hacer lo que yo quiero.  
+
+Entonces usando el comando `bundle show minima` (que menciona el link) obtuve la ubicación de donde estaba el theme `minima` y en ese directorio (en mi caso `/Library/Ruby/Gems/2.0.0/gems/minima-1.2.0`) encontré la carpeta `_layouts` y `_includes` y copié los archivos que necesitaba cambiar a mi directorio.  
+
+
+### No carga los CSS ###
+Inicialmente al levantar el blog con el comando `bundle exec jekyll serve` pude verlo en la url `localhost:4000`, pero por alguna extraña razón no cargaba los estilos CSS.  
+
+Inspeccionando el archivo `index.html` que Jekyll genera, vi que los estilos estaban referenciandos hacia la url:`cafec170.github.io/css/main.css` y en el consola de Firefox me indicaba que no se encontró el recurso. Esto se debía a que en el archivo de configuración `_config.yml` yo setié la variable `url: "cafec170.github.io"`, lo cual está correcto! y es necesario para que sea publicado correctamente online en github pages.  
 Pero... localmente la url donde levanta el blog no es `cafec170.github.io` sinó que es `localhost:4000`.  
+Esto se resuelve automagicamente si hacemos uso de los consejos mencionados arriba sobre **rutas absolutas y relativas**.  
+En particular, en el archivo `header.html` cambié la ruta del CSS.
+Este archivo estaba dentro de la carpeta `_includes`, el cual es usado por el archivo `default.html` dentro de la carpeta `_templates`, un template que usa `index.html`.  
+Como dije, es "todo muy facil" hasta que algo no funciona y hay que remangarse las manos. Lo bueno es que se aprende un montón.
 
-La solución mas razonable era cambiar para la previsualización local la variable `url` a  `localhost:4000`.  
-Lo intenté, pero segúia sin cargar el css. No tengo idea porqué, pero finalmente despues de probar varias posibles soluciones en stackoverflow, encontré [esta respuesta](http://stackoverflow.com/a/18208032/1710845) dando una solución bastante simple, que es comentar (o quitar) la linea de la varaible `url` en `_config.yml` y tal cual, hice eso y los estilos finalmente cargaron.  
-
-Cabe aclarar que esta linea hay que volver a descomentarla cuando se quiera publicar el blog en github pages. O simplemente uno puede modificar el archivo `_config.yml` como uno desee (localmente) pero tener cuidado de nunca hacer un commit de este archivo con la linea comentada.
 
 ### Las fechas están por defecto en inglés ###
 Al menos por el momento Jekyll no ofrece alguna configuración especifica para que las fechas se muestren en otro idioma que no sea inglés.  
@@ -70,19 +84,10 @@ Si queremos las fechas en español podemos usar el siguiente código que saqué 
 {{ post.date | date: " - %H:%M"}}
 {% endraw %}{% endhighlight %}
 
-este código lo podemos sustituir en todos los lugares en donde se usa: `{%raw%}{{ post.date | date: "%b %-d, %Y" }}{%endraw%}`, por ejemplo en el archivo `index.html`.  
+este código lo podemos sustituir en todos los lugares en donde se usa: `{%raw%}{{ post.date | date: "%b %-d, %Y" }}{%endraw%}`, por ejemplo en el archivo `index.html` y tambien dentro de los archivos de template que me copié de los por defecto, como `post.html`.
 
 > De paso les comento que para poder "escapar" tags de de **liquid template** en esta entrada, es decir código de la forma `{%raw%}{% tag %}{%endraw%}` o `{%raw%}{{ variable }}{%endraw%}` que normalmente es preprocesado, puesto que es parte del lenguaje de que jekyll usa, usé los tags especiales (que descubrí [gracias nuevamente a stackoverflow](http://stackoverflow.com/a/5866429/1710845)) `{%raw%}{%raw%}{%endraw%}` y `{{"{%endraw"}}%}` que si son colocados encerrando cualquier codigo de liquid template, se pueden omitir su procesamiento y permite mostrarlos.
 
-### Modificar layouts por defecto ###
-Nuevamente, para lograr hacer algo "relativamente simple" me requirió hacer algo no tan simple ni directo.  
-Luego de cambiar la fecha a español en `index.html` todo bien, ahi se empezó a mostrar correctamente como yo quería, pero cuando entraba a un post especifico seguía viendo la fecha en inglés.  Al usar el layout `post` que viene con el theme `minima`, tiene configurado para que se muestre en ingles por defecto.  
-
-Mi idea para cambiar esto era copiar el contenido del layout `post` por defecto, a un nuevo archivo en mi instancia en la carpeta `_layouts` y ahí realizarle las mismas modificaciones de fecha que hice en `index.html` y ademas ya tenerlo a mano por si quiero mas adelante cambiar o agregar otras cosas.  
-
-El problema es que yo no tenía idea en donde estaba guardado este archivo, entonces lo primero que se me ocurrió fue ir al repositorio de Jekyll y buscar `_layouts` para ver si en algun lugar de hacía referencia a esta carpeta, no encontré exactamente ahí, pero si las [direcciones para llegar a el](https://github.com/jekyll/jekyll/blob/152fa877f6775dc6502e8020e4384cd24f0a0c8c/site/_docs/themes.md#overriding-theme-defaults).  
-
-Es así como con el comando `bundle show minima` obtuve la ubicación de donde estaba el theme por defecto de jekyll y en ese directorio (en mi caso `/Library/Ruby/Gems/2.0.0/gems/minima-1.2.0`) encontré la carpeta `_layouts` con el archivo `post.html`.
 
 ### Muchos otros problemas ###
 En realidad acá estoy contando la experiencia bastante resumida.  
